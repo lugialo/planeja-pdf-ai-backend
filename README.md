@@ -1,5 +1,8 @@
 # planeja-pdf-ai-backend
 
+Esse é o backend da implementação do assistente de inteligência artificial utilizado no projeto planeja-pdf.
+O projeto utiliza como base a API do Gemini para a conversação.
+
 Para instalar o projeto, siga os comandos abaixo:
 
 * Instale o uv
