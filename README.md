@@ -40,6 +40,12 @@ Rode o container do banco PostgreSQL, na pasta raiz do repositório
 docker-compose up -d
 ```
 
+Rode as migrações do Alembic
+
+``` shell
+alembic upgrade head
+```
+
 Para rodar o projeto localmente, utilize:
 
 ``` shell
