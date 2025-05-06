@@ -19,7 +19,7 @@ Ative o ambiente
 ``` shell
 source .venv/bin/activate # Linux/MacOS
 # ou
-.\venv\Scripts\activate # Windows
+venv\Scripts\activate # Windows
 ```
 
 Instale as dependências

@@ -12,7 +12,7 @@ router = APIRouter()
 load_dotenv()
 # Configuração do Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-text_model = genai.GenerativeModel('gemini-1.5-flash')
+text_model = genai.GenerativeModel('gemini-2.5-flash-preview-04-17')
 
 # Dependência do banco de dados
 def get_db():
