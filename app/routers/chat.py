@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models.conversation import Conversation
-from models.session import Session
+from models.session import Session as SessionModel
 from schemas.chat import SessionResponse, PromptRequest, ConversationResponse, CreateSessionRequest
 import google.generativeai as genai
 import os
@@ -36,7 +36,7 @@ async def create_session(request: CreateSessionRequest, db: Session = Depends(ge
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao gerar título: {str(e)}")
 
-    new_session = Session(
+    new_session = SessionModel(
         id=session_id,
         user_id=request.user_id,
         title=title
@@ -49,7 +49,7 @@ async def create_session(request: CreateSessionRequest, db: Session = Depends(ge
 # Rota para obter histórico por sessão
 @router.get("/sessions/{session_id}", response_model=SessionResponse)
 async def get_session(session_id: str, db: Session = Depends(get_db)):
-    session = db.query(Session).filter(Session.id == session_id).first()
+    session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Sessão não encontrada")
     
@@ -72,7 +72,7 @@ async def ask(
 ):
     try:
         # Verifica se a sessão existe
-        session = db.query(Session).filter(Session.id == request.session_id).first()
+        session = db.query(SessionModel).filter(SessionModel.id == request.session_id).first()
         if not session:
             raise HTTPException(status_code=404, detail="Sessão inválida")
         
@@ -99,11 +99,25 @@ async def ask(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@router.get("/history", response_model=list[ConversationResponse])
+@router.get("/history", response_model=list[SessionResponse])
 async def get_history(user_id: str, db: Session = Depends(get_db)):
-    conversations = db.query(Conversation)\
-        .filter(Conversation.user_id == user_id)\
-        .order_by(Conversation.created_at.desc())\
+    sessions = db.query(SessionModel)\
+        .filter(SessionModel.user_id == user_id)\
+        .order_by(SessionModel.created_at.desc())\
         .all()
         
-    return conversations
+    result = []
+    for session in sessions:
+        conversations = db.query(Conversation)\
+            .filter(Conversation.session_id == session.id)\
+            .order_by(Conversation.created_at.asc())\
+            .all()
+            
+        result.append({
+            "id": session.id,
+            "title": session.title,
+            "created_at": session.created_at,
+            "conversations": conversations
+        })
+        
+    return result
