@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
-from routers import chat
+from routers import chat, analysis_router
 
 app = FastAPI()
 
@@ -18,6 +18,8 @@ app.add_middleware(
 
 # Inclui as rotas de chat
 app.include_router(chat.router, prefix="/chat")
+
+app.include_router(analysis_router.router)
 
 @app.get("/")
 async def root():

@@ -27,6 +27,25 @@ else:
     external_engine = None
     ExternalSessionLocal = None
     ExternalBase = None
+    
+
+# Função para obter a sessão do banco local
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Função para obter a sessão do banco externo
+def get_external_db():
+    if not ExternalSessionLocal:
+        raise Exception("A URL do banco externo não está configurada.")
+    db = ExternalSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # def test_external_connection():
 #     if external_engine is None:

@@ -1,6 +1,7 @@
-from sqlalchemy import Column, String, Integer, Float, DateTime, ForeignKey
-
-from app.database import ExternalBase
+from sqlalchemy import Column, String, Integer, Enum, Float, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+import enum
+from database import ExternalBase
 
 # Tabela Budget, do banco externo
 class Budget(ExternalBase):
@@ -16,6 +17,15 @@ class Budget(ExternalBase):
     shippingDate = Column(DateTime, nullable=True)
     validateDate = Column(DateTime, nullable=True)
     total = Column(Float, nullable=False)
+    
+    categories = relationship("Category", back_populates="budget")
+    user = relationship("User", back_populates="budgets")
+    
+class StatusBudget(enum.Enum):
+    PENDENTE = 'Pendente'
+    APROVADO = 'Aprovado'
+    CONCLUIDO = 'CONCLUIDO'
+    CANCELADO = 'CANCELADO'
 
 # Tabela Category, do banco externo
 class Category(ExternalBase):
@@ -24,14 +34,20 @@ class Category(ExternalBase):
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
     budgetId = Column(String, ForeignKey('Budget.id'), nullable=False)
+    
+    products = relationship("Product", back_populates="category")
+    budget = relationship("Budget", back_populates="categories")
 
 # Tabela Product, do banco externo
 class Product(ExternalBase):
-    __talbename__ = 'Product'
+    __tablename__ = 'Product'
 
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
     budgetId = Column(String, ForeignKey('Budget.id'), nullable=False)
+    categoryId = Column(String, ForeignKey('Category.id'), nullable=False)
+    
+    category = relationship("Category", back_populates="products")
 
 # Tabela Customer, do banco externo
 class Customer(ExternalBase):
@@ -60,3 +76,5 @@ class User(ExternalBase):
     stripeSubscriptionId = Column(String, nullable=True)
     stripeSubscriptionStatus = Column(String, nullable=True)
     stripePriceId = Column(String, nullable=True)
+    
+    budgets = relationship("Budget", back_populates="user")
