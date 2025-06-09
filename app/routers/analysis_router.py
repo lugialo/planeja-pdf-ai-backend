@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 import google.generativeai as genai
 import os
 
@@ -37,7 +38,7 @@ async def get_sales_trends_analysis(
     
     prompt = f"""
     Você é um analista de negócios especialista em empresas de móveis planejados.
-    Analise os seguintes dados de vendas do usuário com ID '{trends_data['user_id']}' nos últimos {trends_data['period_days']} dias e forneça insights acionáveis para ele.
+    Analise os seguintes dados de vendas do usuário com ID '{trends_data['user_id']}', chamado de {trends_data['user_name']} nos últimos {trends_data['period_days']} dias e forneça insights acionáveis para ele.
 
     Dados Consolidados do Usuário:
     - Número de Orçamentos Aprovados: {trends_data['summary']['approved_budgets_count']}
@@ -55,7 +56,7 @@ async def get_sales_trends_analysis(
     2.  **Pontos de Destaque**: Identifique os seus pontos mais fortes e os pontos de atenção no seu desempenho.
     3.  **Sugestões Estratégicas e Pessoais**: Dê 2 a 3 sugestões claras e práticas que este usuário pode implementar para melhorar seus resultados.
 
-    Use um tom de coaching, direcionado diretamente ao usuário.
+    Use um tom de coaching, direcionado diretamente ao usuário. Lembre-se de cumprimentá-lo utilizando o nome dele, {trends_data['user_name']}
     """
     
     # Chama a API e retorna a resposta
@@ -64,3 +65,29 @@ async def get_sales_trends_analysis(
         return {"analysis": response.text}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao gerar análise com a API do Gemini: {str(e)}")
+    
+@router.get("/debug-db-tables")
+async def debug_db_connection(edb: Session = Depends(get_external_db)):
+    """
+    Endpoint de teste para verificar TODAS as tabelas que a aplicação consegue ver no schema 'public'.
+    """
+    try:
+        # Consulta SQL modificada para ser mais ampla
+        query = text("""
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
+            ORDER BY table_name;
+        """)
+        result = edb.execute(query).fetchall()
+        
+        # Converte o resultado para uma lista simples de nomes de tabela
+        tables = [row[0] for row in result]
+        
+        return {
+            "message": "Consulta executada com sucesso. Estas são todas as tabelas encontradas no schema 'public'.",
+            "database_connected": str(edb.bind.url), # Mostra a URL de conexão que está sendo usada
+            "tables_in_public_schema": tables
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao executar consulta de debug: {str(e)}")

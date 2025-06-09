@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Carregar variáveis de ambiente
-load_dotenv()
+load_dotenv(override=True)
 
 from app.database import ExternalBase
 from app.models.external_data import Budget, Category, Product, Customer, User

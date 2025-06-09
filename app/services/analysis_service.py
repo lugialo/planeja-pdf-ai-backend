@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case
 from datetime import datetime, timedelta
+from models.external_data import ExternalUser
 
-from models.external_data import Budget, Product, Category, StatusBudget
+from models.external_data import ExternalBudget, ExternalProduct, ExternalCategory, BudgetStatusEnum
 
 def get_sales_trends_data(db: Session, user_id: str, days_to_analyze: int = 30):
     end_date = datetime.now()
@@ -10,53 +11,56 @@ def get_sales_trends_data(db: Session, user_id: str, days_to_analyze: int = 30):
 
     # Agrega dados gerais sobre orçamentos aprovados no período definido pelo parâmetro days_to_analyze
     approved_budgets_summary = db.query(
-        func.count(Budget.id).label("count"),
-        func.sum(Budget.total).label("total_value"),
-        func.avg(Budget.total).label("average_value")
+        func.count(ExternalBudget.id).label("count"),
+        func.sum(ExternalBudget.total).label("total_value"),
+        func.avg(ExternalBudget.total).label("average_value")
     ).filter(
-        Budget.userId == user_id,
-        Budget.status == StatusBudget.APROVADO.value,
-        Budget.createdAt >= start_date,
-        Budget.createdAt <= end_date
+        ExternalBudget.userId == user_id,
+        ExternalBudget.status == BudgetStatusEnum.Aceito.value,
+        ExternalBudget.createdAt >= start_date,
+        ExternalBudget.createdAt <= end_date
     ).first()
     
     # Encontra as categorias mais populares em orçamentos aprovados.
     
     top_categories = db.query(
-        Category.name,
-        func.count(Category.id).label("category_count")
+        ExternalCategory.name,
+        func.count(ExternalCategory.id).label("category_count")
     ).join(
-        Budget, Category.budgetId == Budget.id
+        ExternalBudget, ExternalCategory.budgetId == ExternalBudget.id
     ).filter(
-        Budget.userId == user_id,
-        Budget.status == StatusBudget.APROVADO.value,
-        Budget.createdAt >= start_date
+        ExternalBudget.userId == user_id,
+        ExternalBudget.status == BudgetStatusEnum.Aceito.value,
+        ExternalBudget.createdAt >= start_date
     ).group_by(
-        Category.name
+        ExternalCategory.name
     ).order_by(
-        func.count(Category.id).desc()
+        func.count(ExternalCategory.id).desc()
     ).limit(5).all()
     
     # Encontra os produtos mais populares
     top_products = db.query(
-        Product.name,
-        func.count(Product.id).label("product_count")
+        ExternalProduct.name,
+        func.count(ExternalProduct.id).label("product_count")
     ).join(
-        Category, Product.categoryId == Category.id
+        ExternalCategory, ExternalProduct.categoryId == ExternalCategory.id
     ).join(
-        Budget, Category.budgetId == Budget.id
+        ExternalBudget, ExternalCategory.budgetId == ExternalBudget.id
     ).filter(
-        Budget.userId == user_id,
-        Budget.status == StatusBudget.APROVADO.value,
-        Budget.createdAt >= start_date
+        ExternalBudget.userId == user_id,
+        ExternalBudget.status == BudgetStatusEnum.Aceito.value,
+        ExternalBudget.createdAt >= start_date
     ).group_by(
-        Product.name
+        ExternalProduct.name
     ).order_by(
-        func.count(Product.id).desc()
+        func.count(ExternalProduct.id).desc()
     ).limit(5).all()
+
+    user_name = db.query(ExternalUser.name).filter(ExternalUser.id == user_id).scalar()
     
     return {
         "user_id": user_id,
+        "user_name": user_name,
         "period_days": days_to_analyze,
         "summary": {
             "approved_budgets_count": approved_budgets_summary.count or 0,

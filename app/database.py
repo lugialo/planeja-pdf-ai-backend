@@ -15,7 +15,7 @@ Base = declarative_base()
 EXTERNAL_DATABASE_URL = os.getenv("EXTERNAL_DATABASE_URL")
 if EXTERNAL_DATABASE_URL:
     external_engine = create_engine(EXTERNAL_DATABASE_URL)
-    ExternalSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    ExternalSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=external_engine)
     ExternalBase = declarative_base()
     try:
         with external_engine.connect() as externalConnection:
@@ -44,6 +44,7 @@ def get_external_db():
     db = ExternalSessionLocal()
     try:
         yield db
+        print(db)
     finally:
         db.close()
 

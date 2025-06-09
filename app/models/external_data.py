@@ -1,80 +1,70 @@
-from sqlalchemy import Column, String, Integer, Enum, Float, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+# app/models/external_data.py
 import enum
+from sqlalchemy import (
+    Column, String, Float, DateTime, ForeignKey, Enum as SAEnum, 
+    Boolean, Integer, Text
+)
+from sqlalchemy.orm import relationship
 from database import ExternalBase
 
-# Tabela Budget, do banco externo
-class Budget(ExternalBase):
-    __tablename__ = 'Budget'
+# ==============================================================================
+# ENUMS
+# ==============================================================================
 
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    status = Column(String, nullable=False)
-    customerId = Column(String, ForeignKey('Customer.id'), nullable=True)
-    userId = Column(String, ForeignKey('User.id'), nullable=False)
+class BudgetStatusEnum(str, enum.Enum):
+    Enviado = "Enviado"
+    Pendente = "Pendente"
+    Aceito = "Aceito"
+    Negado = "Negado"
+# Adicione outros Enums conforme necessário (PaymentStatusEnum, etc.)
+
+# ==============================================================================
+# MODELOS DE TABELA (MAPPERS) - Versão Final
+# ==============================================================================
+
+class ExternalUser(ExternalBase):
+    __tablename__ = "User"  # Nomes com letra maiúscula
+    __table_args__ = {'schema': 'public'}
+
+    id = Column(Text, primary_key=True)
+    name = Column(Text)
+    email = Column(Text)
+    
+    budgets = relationship("ExternalBudget", back_populates="user", foreign_keys="[ExternalBudget.userId]")
+
+class ExternalBudget(ExternalBase):
+    __tablename__ = "Budget"  # Nomes com letra maiúscula
+    __table_args__ = {'schema': 'public'}
+
+    id = Column(Text, primary_key=True)
+    name = Column(Text, nullable=False)
+    status = Column(SAEnum(BudgetStatusEnum), nullable=False)
+    userId = Column(Text, ForeignKey('public.User.id'), nullable=False) # FK com letra maiúscula
     createdAt = Column(DateTime, nullable=False)
-    updatedAt = Column(DateTime, nullable=False)
-    shippingDate = Column(DateTime, nullable=True)
-    validateDate = Column(DateTime, nullable=True)
     total = Column(Float, nullable=False)
-    
-    categories = relationship("Category", back_populates="budget")
-    user = relationship("User", back_populates="budgets")
-    
-class StatusBudget(enum.Enum):
-    PENDENTE = 'Pendente'
-    APROVADO = 'Aprovado'
-    CONCLUIDO = 'CONCLUIDO'
-    CANCELADO = 'CANCELADO'
+    customerId = Column(Text) # Adicionado para consistência com o schema
 
-# Tabela Category, do banco externo
-class Category(ExternalBase):
-    __tablename__ = 'Category'
+    user = relationship("ExternalUser", back_populates="budgets")
+    categories = relationship("ExternalCategory", back_populates="budget", foreign_keys="[ExternalCategory.budgetId]")
 
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    budgetId = Column(String, ForeignKey('Budget.id'), nullable=False)
-    
-    products = relationship("Product", back_populates="category")
-    budget = relationship("Budget", back_populates="categories")
+class ExternalCategory(ExternalBase):
+    __tablename__ = "Category"  # Nomes com letra maiúscula
+    __table_args__ = {'schema': 'public'}
 
-# Tabela Product, do banco externo
-class Product(ExternalBase):
-    __tablename__ = 'Product'
+    id = Column(Text, primary_key=True)
+    name = Column(Text, nullable=False)
+    budgetId = Column(Text, ForeignKey('public.Budget.id'), nullable=False) # FK com letra maiúscula
 
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    budgetId = Column(String, ForeignKey('Budget.id'), nullable=False)
-    categoryId = Column(String, ForeignKey('Category.id'), nullable=False)
-    
-    category = relationship("Category", back_populates="products")
+    budget = relationship("ExternalBudget", back_populates="categories")
+    products = relationship("ExternalProduct", back_populates="category", foreign_keys="[ExternalProduct.categoryId]")
 
-# Tabela Customer, do banco externo
-class Customer(ExternalBase):
-    __tablename__ = 'Customer'
+class ExternalProduct(ExternalBase):
+    __tablename__ = "Product"  # Nomes com letra maiúscula
+    __table_args__ = {'schema': 'public'}
 
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    phone = Column(String, nullable=False)
-    email = Column(String, nullable=True)
-    birthdate = Column(DateTime, nullable=True)
-    userId = Column(String, ForeignKey('User.id'), nullable=False)
-    address = Column(String, nullable=False)
-    cnpj = Column(String, nullable=True)
-    cpf = Column(String, nullable=True)
+    id = Column(Text, primary_key=True)
+    name = Column(Text, nullable=False)
+    price = Column(Float, nullable=False)
+    categoryId = Column(Text, ForeignKey('public.Category.id'), nullable=False) # FK com letra maiúscula
 
-# Tabela User, do banco externo
-class User(ExternalBase):
-    __tablename__ = 'User'
-
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=True)
-    email = Column(String, nullable=True)
-    emailVerified = Column(DateTime, nullable=True)
-    image = Column(String, nullable=True)
-    stripeCustomerId = Column(String, nullable=True)
-    stripeSubscriptionId = Column(String, nullable=True)
-    stripeSubscriptionStatus = Column(String, nullable=True)
-    stripePriceId = Column(String, nullable=True)
-    
-    budgets = relationship("Budget", back_populates="user")
+    category = relationship("ExternalCategory", back_populates="products")
