@@ -10,7 +10,7 @@ from services import analysis_service
 router = APIRouter(prefix="/analysis", tags=["Analysis & Insights"])
 try:
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    text_model = genai.GenerativeModel('gemini-2.5-pro-preview-05-06')
+    text_model = genai.GenerativeModel('gemini-2.5-pro-preview-06-05')
 except Exception as e:
     text_model = None
     print(f"Alerta: Chave da API do Gemini não configurada. {e}")
