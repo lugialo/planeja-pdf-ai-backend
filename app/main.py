@@ -4,11 +4,10 @@ from pydantic import BaseModel
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
-from routers import chat, analysis_router
+from routers import chat, analysis_router, pdf_router
 
 app = FastAPI()
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,10 +15,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Inclui as rotas de chat
 app.include_router(chat.router, prefix="/chat")
 
 app.include_router(analysis_router.router)
+
+app.include_router(pdf_router.router)
 
 @app.get("/")
 async def root():

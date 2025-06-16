@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Orçamento {{ budget.id }}</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; color: #333; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+        .header img { max-width: 150px; }
+        .header h1 { margin: 0; color: #555; }
+        .customer-info { margin-bottom: 30px; }
+        .category-section { margin-bottom: 25px; }
+        .category-title { font-size: 1.2em; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px; }
+        .product-list { list-style-type: none; padding-left: 0; }
+        .product-list li { display: flex; justify-content: space-between; padding: 5px 0; }
+        .category-total { text-align: right; font-weight: bold; margin-top: 10px; font-size: 1.1em; }
+        .grand-total { text-align: right; font-weight: bold; font-size: 1.3em; margin-top: 30px; }
+        .footer-section { margin-top: 50px; border-top: 1px solid #ccc; padding-top: 20px; font-size: 0.9em; }
+        .footer-section h3 { margin-top: 0; }
+        .company-info { text-align: center; margin-top: 40px; font-size: 0.8em; color: #777; }
+        .compliance { margin-top: 20px; font-size: 0.7em; color: #696767; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ORÇAMENTO #{{ budget.id[:8] }}</h1>
+    </div>
+
+    <div class="customer-info">
+        <strong>Cliente:</strong> {{ customer.name }}
+    </div>
+
+    {% for category in budget.categories %}
+    <div class="category-section">
+        <div class="category-title">{{ category.name }}</div>
+        <ul class="product-list">
+            {% for product in category.products %}
+            <li>
+                <span>• {{ product.name }}</span>
+                <span>R$ {{ "%.2f"|format(product.price) }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="category-total">
+            Total {{ category.name }}: R$ {{ "%.2f"|format(category.products|sum(attribute='price')) }}
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="grand-total">
+        Total geral do orçamento: R$ {{ "%.2f"|format(budget.total) }}
+    </div>
+
+    <div class="footer-section">
+        <h3>Formas de Pagamento</h3>
+        <p>{{ settings.paymentMethod }}</p>
+
+        <h3>Observações</h3>
+        <p>{{ settings.observation or 'NENHUMA OBSERVAÇÃO.' }}</p>
+
+        <p>
+            <strong>Prazo de entrega:</strong> 
+            {{ (budget.createdAt + timedelta(days=settings.deliveryTimeDays)).strftime('%d/%m/%Y') }}
+        </p>
+        <p>
+            <strong>Validade deste orçamento:</strong> 
+            {{ (budget.createdAt + timedelta(days=settings.budgetValidityDays)).strftime('%d/%m/%Y') }}
+        </p>
+    </div>
+
+    <div class="company-info">
+        <strong>{{ settings.companyName }}</strong><br>
+        {{ settings.street }}, {{ settings.number }} - {{ settings.neighborhood }} - {{ settings.city }} / {{ settings.state }} - CEP {{ settings.zipCode }}<br>
+        CNPJ: {{ settings.cnpj }}
+    </div>
+    <div class="compliance">
+        <p>ATENÇÃO: Esse orçamento foi gerado através de inteligência artificial. Alguns pontos podem não estar corretos. Revise se necessário.</p>
+        <p>Emitido em: {{ budget.createdAt.strftime('%d/%m/%Y %H:%M') }}</p>
+    </div>
+</body>
+</html>
