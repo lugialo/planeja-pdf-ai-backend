@@ -53,7 +53,7 @@
 
     <div class="footer-section">
         <h3>Formas de Pagamento</h3>
-        <p>{{ settings.paymentMethod }}</p>
+        <p>{{ settings.paymentMethod or 'NÃO ESPECIFICADO.' }}</p>
 
         <h3>Observações</h3>
         <p>{{ settings.observation or 'NENHUMA OBSERVAÇÃO.' }}</p>

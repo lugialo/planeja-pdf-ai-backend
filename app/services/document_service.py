@@ -4,6 +4,7 @@ from docxtpl import DocxTemplate
 from datetime import timedelta
 import io
 import pathlib 
+import os
 
 SERVICE_DIR = pathlib.Path(__file__).resolve().parent
 
@@ -23,8 +24,7 @@ def generate_budget_pdf(budget_data):
 
 docx_template_path = TEMPLATE_DIR / "budget_template.docx"
 
-
-def generate_budget_docx(budget_data):
+def generate_budget_docx(budget_data, output_path):
     """Gera um DOCX de orçamento a partir dos dados processados."""
     # Carrega o template usando o caminho absoluto
     docx_template = DocxTemplate(docx_template_path)
@@ -32,9 +32,19 @@ def generate_budget_docx(budget_data):
     # Renderiza o template .docx com o contexto
     docx_template.render(budget_data)
     
-    # Salva o documento em um buffer de bytes em memória
     file_stream = io.BytesIO()
     docx_template.save(file_stream)
+    
+    if output_path:
+        output_dir = os.path.dirname(output_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+            
+            with open(output_path, 'wb') as f:
+                f.write(file_stream.getvalue())
+                
     file_stream.seek(0)
     
     return file_stream.read()
+    
+   

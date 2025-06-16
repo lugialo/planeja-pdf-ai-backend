@@ -87,7 +87,7 @@ async def generate_dynamic_budget_document(
 
     budget_data = {
         "budget": {
-            "id": f"IA-{datetime.now().strftime('%Y%m%d')}",
+            "id": f"{datetime.now().strftime('%Y%m%d')}",
             "name": ai_budget_data.get("name", "Orçamento Personalizado"),
             "categories": ai_budget_data.get("categories", []),
             "total": ai_budget_data.get("total", 0.0),
@@ -99,7 +99,7 @@ async def generate_dynamic_budget_document(
     }
     
     if request.output_format == 'docx':
-        file_bytes = document_service.generate_budget_docx(budget_data)
+        file_bytes = document_service.generate_budget_docx(budget_data, "temp/budget.docx")
         media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         file_extension = "docx"
     else: # O padrão é PDF
