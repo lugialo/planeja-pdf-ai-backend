@@ -1,8 +1,8 @@
 from sqlalchemy import Column, String, DateTime, ForeignKey, func
-from database import Base
+from app.database import MainBase
 import uuid
 
-class Conversation(Base):
+class Conversation(MainBase):
     __tablename__ = "conversations"
     
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))

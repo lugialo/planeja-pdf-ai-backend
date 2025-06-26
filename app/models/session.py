@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, DateTime, func
-from database import Base
+from app.database import MainBase
 
-class Session(Base):
+class Session(MainBase):
     __tablename__ = "sessions"
     
     id = Column(String, primary_key = True, index = True)

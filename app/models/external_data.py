@@ -5,7 +5,7 @@ from sqlalchemy import (
     Boolean, Integer, Text
 )
 from sqlalchemy.orm import relationship
-from database import ExternalBase
+from app.database import PlatformBase
 
 class BudgetStatusEnum(str, enum.Enum):
     Enviado = "Enviado"
@@ -30,7 +30,7 @@ class SubscriptionStatusEnum(str, enum.Enum):
     Trial = "Trial"
 
 
-class ExternalUser(ExternalBase):
+class ExternalUser(PlatformBase):
     __tablename__ = "User"
     __table_args__ = {'schema': 'public'}
 
@@ -49,7 +49,7 @@ class ExternalUser(ExternalBase):
     subscriptions = relationship("ExternalSubscription", back_populates="user", foreign_keys="[ExternalSubscription.userId]")
     settings = relationship("ExternalSettings", back_populates="user", foreign_keys="[ExternalSettings.userId]", uselist=False)
     
-class ExternalCustomer(ExternalBase):
+class ExternalCustomer(PlatformBase):
     __tablename__ = "Customer"
     __table_args__ = {'schema': 'public'}
     
@@ -66,7 +66,7 @@ class ExternalCustomer(ExternalBase):
     user = relationship("ExternalUser", back_populates="customers")
     budgets = relationship("ExternalBudget", back_populates="customer", foreign_keys="[ExternalBudget.customerId]")
 
-class ExternalBudget(ExternalBase):
+class ExternalBudget(PlatformBase):
     __tablename__ = "Budget"
     __table_args__ = {'schema': 'public'}
 
@@ -85,7 +85,7 @@ class ExternalBudget(ExternalBase):
     customer = relationship("ExternalCustomer", back_populates="budgets")
     categories = relationship("ExternalCategory", back_populates="budget", foreign_keys="[ExternalCategory.budgetId]")
 
-class ExternalCategory(ExternalBase):
+class ExternalCategory(PlatformBase):
     __tablename__ = "Category" 
     __table_args__ = {'schema': 'public'}
 
@@ -96,7 +96,7 @@ class ExternalCategory(ExternalBase):
     budget = relationship("ExternalBudget", back_populates="categories")
     products = relationship("ExternalProduct", back_populates="category", foreign_keys="[ExternalProduct.categoryId]")
 
-class ExternalProduct(ExternalBase):
+class ExternalProduct(PlatformBase):
     __tablename__ = "Product"
     __table_args__ = {'schema': 'public'}
 
@@ -106,7 +106,7 @@ class ExternalProduct(ExternalBase):
     categoryId = Column(Text, ForeignKey('public.Category.id'), nullable=False)
 
     category = relationship("ExternalCategory", back_populates="products")
-class ExternalSubscription(ExternalBase):
+class ExternalSubscription(PlatformBase):
     __tablename__ = "Subscription"
     __table_args__ = {'schema': 'public'}
     
@@ -122,7 +122,7 @@ class ExternalSubscription(ExternalBase):
     user = relationship("ExternalUser", back_populates="subscriptions")
     payments = relationship("ExternalPayment", back_populates="subscription")
 
-class ExternalPayment(ExternalBase):
+class ExternalPayment(PlatformBase):
     __tablename__ = "Payment"
     __table_args__ = {'schema': 'public'}
     
@@ -135,7 +135,7 @@ class ExternalPayment(ExternalBase):
     
     subscription = relationship("ExternalSubscription", back_populates="payments")
 
-class ExternalSettings(ExternalBase):
+class ExternalSettings(PlatformBase):
     __tablename__ = "Settings"
     __table_args__ = {'schema': 'public'}
     

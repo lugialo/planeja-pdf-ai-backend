@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 import uuid
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from models.conversation import Conversation
-from models.session import Session as SessionModel
-from schemas.chat import SessionResponse, PromptRequest, ConversationResponse, CreateSessionRequest
+from app.database import get_main_db
+from app.models.conversation import Conversation
+from app.models.session import Session as SessionModel
+from app.schemas.chat import SessionResponse, PromptRequest, ConversationResponse, CreateSessionRequest
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
@@ -16,17 +16,9 @@ load_dotenv(override=True)
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 text_model = genai.GenerativeModel('gemini-2.5-pro-preview-05-06')
 
-# Dependência do banco de dados
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close
-        
 # Cria uma nova sessão
 @router.post("/session/new")
-async def create_session(request: CreateSessionRequest, db: Session = Depends(get_db)):
+async def create_session(request: CreateSessionRequest, db: Session = Depends(get_main_db)):
     session_id = str(uuid.uuid4())
 
     # Gera o título com base no primeiro prompt
@@ -48,7 +40,7 @@ async def create_session(request: CreateSessionRequest, db: Session = Depends(ge
 
 # Rota para obter histórico por sessão
 @router.get("/sessions/{session_id}", response_model=SessionResponse)
-async def get_session(session_id: str, db: Session = Depends(get_db)):
+async def get_session(session_id: str, db: Session = Depends(get_main_db)):
     session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Sessão não encontrada")
@@ -68,7 +60,7 @@ async def get_session(session_id: str, db: Session = Depends(get_db)):
 @router.post("/ask")
 async def ask(
     request: PromptRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_main_db)
 ):
     try:
         # Verifica se a sessão existe
@@ -100,7 +92,7 @@ async def ask(
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.get("/history", response_model=list[SessionResponse])
-async def get_history(user_id: str, db: Session = Depends(get_db)):
+async def get_history(user_id: str, db: Session = Depends(get_main_db)):
     sessions = db.query(SessionModel)\
         .filter(SessionModel.user_id == user_id)\
         .order_by(SessionModel.created_at.desc())\

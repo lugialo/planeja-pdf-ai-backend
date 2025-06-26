@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case
 from datetime import datetime, timedelta
-from models.external_data import ExternalUser
+from app.models.external_data import ExternalUser
 
-from models.external_data import ExternalBudget, ExternalProduct, ExternalCategory, BudgetStatusEnum
+from app.models.external_data import ExternalBudget, ExternalProduct, ExternalCategory, BudgetStatusEnum
 
 def get_sales_trends_data(db: Session, user_id: str, days_to_analyze: int = 30):
     end_date = datetime.now()

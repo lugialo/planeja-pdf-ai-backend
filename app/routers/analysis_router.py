@@ -4,8 +4,8 @@ from sqlalchemy import text
 import google.generativeai as genai
 import os
 
-from database import get_external_db
-from services import analysis_service
+from app.database import get_platform_db
+from app.services import analysis_service
 
 router = APIRouter(prefix="/analysis", tags=["Analysis & Insights"])
 try:
@@ -19,7 +19,7 @@ except Exception as e:
 async def get_sales_trends_analysis(
     user_id: str = Path(..., description="ID do usuário para o qual a análise será gerada"),
     days: int = Query(90, ge=1, le=365, description="Número de dias para análise"),
-    edb: Session = Depends(get_external_db)
+    edb: Session = Depends(get_platform_db)
 ):
     if not text_model:
         raise HTTPException(status_code=503, detail="Alerta: Chave da API do Gemini não configurada")
@@ -73,7 +73,7 @@ async def get_sales_trends_analysis(
         raise HTTPException(status_code=500, detail=f"Erro ao gerar análise com a API do Gemini: {str(e)}")
     
 @router.get("/debug-db-tables")
-async def debug_db_connection(edb: Session = Depends(get_external_db)):
+async def debug_db_connection(edb: Session = Depends(get_platform_db)):
     """
     Endpoint de teste para verificar TODAS as tabelas que a aplicação consegue ver no schema 'public'.
     """

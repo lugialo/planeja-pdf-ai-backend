@@ -7,10 +7,10 @@ import google.generativeai as genai
 import os
 from datetime import datetime, timedelta
 
-from database import get_external_db
-from models.external_data import ExternalUser, ExternalCustomer 
-from schemas.pdf_schema import BudgetGenerationRequest
-from services import document_service
+from app.database import get_platform_db
+from app.models.external_data import ExternalUser, ExternalCustomer 
+from app.schemas.pdf_schema import BudgetGenerationRequest
+from app.services import document_service
 
 # Configuração do Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/documents", tags=["Geração de Documentos"])
 @router.post("/generate-budget")
 async def generate_dynamic_budget_document(
     request: BudgetGenerationRequest,
-    edb: Session = Depends(get_external_db)
+    edb: Session = Depends(get_platform_db)
 ):
     customer = edb.query(ExternalCustomer).filter(ExternalCustomer.id == request.customer_id).first()
     user_with_settings = edb.query(ExternalUser).options(
