@@ -40,7 +40,7 @@ async def get_sales_trends_analysis(
     Você é um analista de negócios especialista em empresas de móveis planejados.
     Analise os seguintes dados de vendas do usuário com ID '{trends_data['user_id']}', chamado de {trends_data['user_name']} nos últimos {trends_data['period_days']} dias e forneça insights acionáveis para ele.
 
-    Dados Consolidados do Usuário:
+    Dados Consolidados do Usuário (período de {trends_data['period_days']} dias):
     - Número de Orçamentos Aprovados: {trends_data['summary']['approved_budgets_count']}
     - Faturamento Total (Vendas): R$ {trends_data['summary']['total_sales_value']:.2f}
     - Ticket Médio por Orçamento: R$ {trends_data['summary']['average_budget_value']:.2f}
@@ -51,18 +51,24 @@ async def get_sales_trends_analysis(
     Top 5 Produtos Mais Populares (por nº de orçamentos deste usuário):
     {', '.join([f'{prod["name"]} ({prod["count"]})' for prod in trends_data["top_products"]]) if trends_data["top_products"] else "Nenhum"}
 
-    Com base nestes dados pessoais de desempenho, gere uma análise em 3 partes para este usuário:
-    1.  **Resumo Executivo**: Uma visão geral e rápida dos seus resultados.
-    2.  **Pontos de Destaque**: Identifique os seus pontos mais fortes e os pontos de atenção no seu desempenho.
+    Com base nestes dados pessoais de desempenho dos últimos {trends_data['period_days']} dias, gere uma análise em 3 partes para este usuário:
+    1.  **Resumo Executivo**: Uma visão geral e rápida dos seus resultados nos últimos {trends_data['period_days']} dias.
+    2.  **Pontos de Destaque**: Identifique os seus pontos mais fortes e os pontos de atenção no seu desempenho neste período.
     3.  **Sugestões Estratégicas e Pessoais**: Dê 2 a 3 sugestões claras e práticas que este usuário pode implementar para melhorar seus resultados.
 
-    Use um tom de coaching, direcionado diretamente ao usuário. Lembre-se de cumprimentá-lo utilizando o nome dele, {trends_data['user_name']}
+    Use um tom de coaching, direcionado diretamente ao usuário. Lembre-se de cumprimentá-lo utilizando o nome dele, {trends_data['user_name']}, e sempre mencione que a análise se refere aos últimos {trends_data['period_days']} dias.
     """
     
     # Chama a API e retorna a resposta
     try:
         response = text_model.generate_content(prompt)
-        return {"analysis": response.text}
+        return {
+            "user_id": trends_data['user_id'],
+            "user_name": trends_data['user_name'],
+            "period_analyzed": f"{trends_data['period_days']} dias",
+            "analysis": response.text,
+            "data_summary": trends_data['summary']
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao gerar análise com a API do Gemini: {str(e)}")
     
