@@ -14,6 +14,11 @@ class CreateSessionRequest(BaseModel):
     user_id: str
     first_prompt: str
 
+class CreateSessionResponse(BaseModel):
+    session_id: str
+    title: str
+    first_response: str
+
 class ConversationResponse(BaseModel):
     prompt: str
     response: str

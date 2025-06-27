@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import logging
 
 from app.routers import chat, analysis_router, pdf_router, customer_router
 
@@ -27,6 +28,14 @@ app.include_router(analysis_router.router)
 app.include_router(pdf_router.router)
 app.include_router(customer_router.router)
 
+# Configurar logging básico
+logging.basicConfig(level=logging.INFO)
+
 @app.get("/")
 async def root():
     return {"message": "API de Orçamentos de Móveis - Online"}
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Cloud Run"""
+    return {"status": "healthy", "service": "planeja-pdf-ai-backend"}
